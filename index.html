@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daily Scheduler</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header>
+        <h1>Daily Scheduler</h1>
+        <p>Plan your day with focus blocks and reminders.</p>
+      </header>
+
+      <section class="scheduler-card">
+        <form id="task-form" class="task-form">
+          <label>
+            Task
+            <input id="task-name" type="text" placeholder="e.g. Team standup" required />
+          </label>
+          <label>
+            Start
+            <input id="task-start" type="time" required />
+          </label>
+          <label>
+            End
+            <input id="task-end" type="time" required />
+          </label>
+          <button type="submit">Add to Schedule</button>
+        </form>
+
+        <div class="schedule-wrapper">
+          <h2>Today</h2>
+          <ul id="schedule-list" class="schedule-list" aria-live="polite"></ul>
+        </div>
+      </section>
+    </main>
+
+    <template id="task-template">
+      <li class="task-item">
+        <div>
+          <p class="time-range"></p>
+          <p class="task-title"></p>
+        </div>
+        <button class="delete-btn" type="button" aria-label="Delete task">✕</button>
+      </li>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>
