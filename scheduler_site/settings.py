@@ -77,6 +77,8 @@ Q_CLUSTER = {
     'name': 'navitas',
     'workers': 2,
     'timeout': 7200,
+    # django-q2 requires retry > timeout to avoid re-trigger before completion
+    'retry': 7500,
     'retry': 90,
     'queue_limit': 200,
     'bulk': 10,
