@@ -56,6 +56,8 @@ DATABASES = {
         'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': os.environ.get('DB_HOST', ''),
         'PORT': os.environ.get('DB_PORT', ''),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -77,6 +79,7 @@ Q_CLUSTER = {
     'timeout': 7200,
     # django-q2 requires retry > timeout to avoid re-trigger before completion
     'retry': 7500,
+    'retry': 90,
     'queue_limit': 200,
     'bulk': 10,
     'orm': 'default',

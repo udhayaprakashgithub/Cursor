@@ -1,5 +1,7 @@
 import subprocess
 import time
+import shlex
+import subprocess
 from pathlib import Path
 
 from django.utils import timezone
@@ -63,7 +65,6 @@ def execute_job(execution_id: int):
             log.message = str(exc)
             log.save()
         if attempt < attempts and job.retry_delay:
-            time.sleep(job.retry_delay)
             continue
 
     execution.finished_at = timezone.now()
