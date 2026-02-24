@@ -1,0 +1,13 @@
+body { font-family: Arial, sans-serif; margin: 0; background: #f3f4f6; }
+.container { max-width: 1100px; margin: 2rem auto; padding: 1rem; }
+.card { background: #fff; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+.form-grid p { display: grid; gap: 0.25rem; margin: 0.75rem 0; }
+input, select, textarea { padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 6px; }
+button { padding: 0.5rem 0.8rem; border: 0; border-radius: 6px; cursor: pointer; background: #2563eb; color: #fff; }
+button.danger { background: #dc2626; }
+.messages { list-style: none; padding: 0; }
+.messages li { background: #dbeafe; margin-bottom: 0.5rem; padding: 0.5rem; border-radius: 6px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { border: 1px solid #e5e7eb; padding: 0.6rem; text-align: left; vertical-align: top; }
+pre { white-space: pre-wrap; max-width: 420px; max-height: 180px; overflow: auto; margin: 0; }
+.actions { display: grid; gap: 0.35rem; }
