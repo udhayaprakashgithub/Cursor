@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Django Scheduler + Cron Runner</title>
+    <link rel="stylesheet" href="/static/core/app.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Django Scheduler + Cron Operations</h1>
+      <p>Upload <code>main.py</code>, set virtualenv path, and schedule execution.</p>
+
+      {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+
+      <section class="card">
+        <h2>Create Task</h2>
+        <form method="post" enctype="multipart/form-data" class="form-grid">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit">Save Task</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Scheduled Tasks</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Enabled</th>
+              <th>Last Run</th>
+              <th>Output</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for task in tasks %}
+            <tr>
+              <td>{{ task.name }}</td>
+              <td>{{ task.schedule_type }}</td>
+              <td>{{ task.enabled }}</td>
+              <td>{{ task.last_run|default:"-" }}</td>
+              <td><pre>{{ task.last_output|default:"-" }}</pre></td>
+              <td class="actions">
+                <form method="post" action="{% url 'run_now' task.id %}">{% csrf_token %}<button>Run now</button></form>
+                <form method="post" action="{% url 'toggle_task' task.id %}">{% csrf_token %}<button>{% if task.enabled %}Disable{% else %}Enable{% endif %}</button></form>
+                <form method="post" action="{% url 'delete_task' task.id %}">{% csrf_token %}<button class="danger">Delete</button></form>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="6">No tasks yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>
