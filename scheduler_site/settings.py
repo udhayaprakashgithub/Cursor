@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -13,6 +14,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_q',
     'core',
 ]
 
@@ -48,6 +50,12 @@ ASGI_APPLICATION = 'scheduler_site.asgi.application'
 
 DATABASES = {
     'default': {
+        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.environ.get('DB_NAME', BASE_DIR / 'db.sqlite3'),
+        'USER': os.environ.get('DB_USER', ''),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', ''),
+        'PORT': os.environ.get('DB_PORT', ''),
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
@@ -62,5 +70,17 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'core' / 'static']
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+DEPLOYMENT_FOLDER = os.environ.get('DEPLOYMENT_FOLDER', str(BASE_DIR / 'deployments'))
+
+Q_CLUSTER = {
+    'name': 'navitas',
+    'workers': 2,
+    'timeout': 7200,
+    'retry': 90,
+    'queue_limit': 200,
+    'bulk': 10,
+    'orm': 'default',
+}
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
