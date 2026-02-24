@@ -1,0 +1,142 @@
+from django.conf import settings
+from django.db import migrations, models
+import django.db.models.deletion
+
+
+class Migration(migrations.Migration):
+    initial = True
+
+    dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('contenttypes', '0002_remove_content_type_name'),
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Deployment',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('custom_name', models.CharField(max_length=160)),
+                ('unique_id', models.CharField(max_length=64, unique=True)),
+                ('description', models.TextField(blank=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_deployments', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={'ordering': ['-created_at']},
+        ),
+        migrations.CreateModel(
+            name='VirtualEnv',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=120, unique=True)),
+                ('path', models.CharField(max_length=500, unique=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_virtualenvs', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={'ordering': ['name']},
+        ),
+        migrations.CreateModel(
+            name='AuditLog',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('action', models.CharField(choices=[('create', 'Create'), ('update', 'Update'), ('delete', 'Delete'), ('run', 'Run'), ('enable', 'Enable'), ('disable', 'Disable'), ('cancel', 'Cancel')], max_length=20)),
+                ('timestamp', models.DateTimeField()),
+                ('ip_address', models.GenericIPAddressField(blank=True, null=True)),
+                ('object_id', models.CharField(blank=True, max_length=50)),
+                ('object_repr', models.CharField(max_length=255)),
+                ('changes', models.JSONField(blank=True, default=dict)),
+                ('content_type', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='contenttypes.contenttype')),
+                ('user', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+            ],
+            options={'ordering': ['-timestamp']},
+        ),
+        migrations.CreateModel(
+            name='DeploymentVersion',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('version_number', models.PositiveIntegerField(default=1)),
+                ('zip_file', models.FileField(upload_to='deployment_zips/')),
+                ('extracted_path', models.CharField(blank=True, max_length=600)),
+                ('notes', models.TextField(blank=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('created_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='created_deployment_versions', to=settings.AUTH_USER_MODEL)),
+                ('deployment', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='versions', to='core.deployment')),
+                ('virtualenv', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='deployment_versions', to='core.virtualenv')),
+            ],
+            options={'ordering': ['-created_at'], 'unique_together': {('deployment', 'version_number')}},
+        ),
+        migrations.CreateModel(
+            name='ScheduledJob',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('name', models.CharField(max_length=180)),
+                ('description', models.TextField(blank=True)),
+                ('enabled', models.BooleanField(default=True)),
+                ('trigger_type', models.CharField(choices=[('folder', 'Folder Watch'), ('once', 'Once'), ('minutes', 'Minutes'), ('hourly', 'Hourly'), ('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly'), ('yearly', 'Yearly'), ('cron', 'Cron')], default='once', max_length=20)),
+                ('watch_path', models.CharField(blank=True, max_length=600)),
+                ('file_pattern', models.CharField(blank=True, default='*', max_length=120)),
+                ('cron', models.CharField(blank=True, max_length=120)),
+                ('minutes_interval', models.PositiveIntegerField(blank=True, null=True)),
+                ('run_at', models.DateTimeField(blank=True, null=True)),
+                ('app_name', models.CharField(blank=True, max_length=80)),
+                ('retry_attempts', models.PositiveIntegerField(default=0)),
+                ('retry_delay', models.PositiveIntegerField(default=60)),
+                ('timeout_override', models.PositiveIntegerField(default=0)),
+                ('tags', models.CharField(blank=True, max_length=200)),
+                ('q_schedule_id', models.CharField(blank=True, max_length=120)),
+                ('total_executions', models.PositiveIntegerField(default=0)),
+                ('success_executions', models.PositiveIntegerField(default=0)),
+                ('failed_executions', models.PositiveIntegerField(default=0)),
+                ('last_result', models.CharField(blank=True, max_length=20)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('allowed_users', models.ManyToManyField(blank=True, related_name='allowed_jobs', to=settings.AUTH_USER_MODEL)),
+                ('deployment_version', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='scheduled_jobs', to='core.deploymentversion')),
+            ],
+            options={'ordering': ['-updated_at']},
+        ),
+        migrations.CreateModel(
+            name='JobExecution',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('job_name', models.CharField(max_length=180)),
+                ('trigger_type', models.CharField(choices=[('folder', 'Folder Watch'), ('once', 'Once'), ('minutes', 'Minutes'), ('hourly', 'Hourly'), ('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly', 'Monthly'), ('yearly', 'Yearly'), ('cron', 'Cron')], max_length=20)),
+                ('trigger_source', models.CharField(default='scheduled', max_length=30)),
+                ('trigger_params', models.JSONField(blank=True, default=dict)),
+                ('django_q_task_id', models.CharField(blank=True, max_length=120)),
+                ('queued_at', models.DateTimeField()),
+                ('started_at', models.DateTimeField(blank=True, null=True)),
+                ('finished_at', models.DateTimeField(blank=True, null=True)),
+                ('cached_status', models.CharField(choices=[('queued', 'Queued'), ('running', 'Running'), ('success', 'Success'), ('failed', 'Failed'), ('cancelled', 'Cancelled'), ('unknown', 'Unknown')], default='queued', max_length=20)),
+                ('cached_duration', models.FloatField(default=0)),
+                ('notes', models.TextField(blank=True)),
+                ('job', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='executions', to='core.scheduledjob')),
+                ('triggered_by', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to=settings.AUTH_USER_MODEL)),
+            ],
+            options={'ordering': ['-queued_at']},
+        ),
+        migrations.CreateModel(
+            name='JobLog',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('job_name', models.CharField(max_length=180)),
+                ('started_at', models.DateTimeField()),
+                ('finished_at', models.DateTimeField(blank=True, null=True)),
+                ('success', models.BooleanField(blank=True, null=True)),
+                ('message', models.TextField(blank=True)),
+                ('attempt_number', models.PositiveIntegerField(default=1)),
+                ('total_attempts', models.PositiveIntegerField(default=1)),
+                ('execution_duration', models.FloatField(default=0)),
+                ('exit_code', models.IntegerField(blank=True, null=True)),
+                ('deployment_version', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='core.deploymentversion')),
+                ('execution', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='core.jobexecution')),
+                ('job', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='logs', to='core.scheduledjob')),
+            ],
+            options={'ordering': ['-started_at']},
+        ),
+        migrations.AddIndex(model_name='auditlog', index=models.Index(fields=['action', 'timestamp'], name='core_auditlo_action_9f892b_idx')),
+        migrations.AddIndex(model_name='scheduledjob', index=models.Index(fields=['enabled', 'trigger_type'], name='core_schedu_enabled_84af90_idx')),
+        migrations.AddIndex(model_name='scheduledjob', index=models.Index(fields=['app_name'], name='core_schedu_app_nam_4bc567_idx')),
+        migrations.AddIndex(model_name='jobexecution', index=models.Index(fields=['cached_status', 'queued_at'], name='core_jobexe_cached__d53ff5_idx')),
+        migrations.AddIndex(model_name='joblog', index=models.Index(fields=['success', 'started_at'], name='core_joblog_success_e76066_idx')),
+    ]
